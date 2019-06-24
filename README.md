@@ -9,6 +9,7 @@
 * checks time conflicts
 * records restricted sections and prevents signing up for them
 * stops searching when over credit limit or when no classes left to sign up for
+* handles classes with lecture and a quiz section or lecture, quiz, and lab sections (hello PHYS 121)
 * stores settings in config file so user only has to set up once
 
 ### Dependencies
