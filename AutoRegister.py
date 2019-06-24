@@ -47,7 +47,7 @@ def main():
             if time.time() >= nextRefresh:
                 addClass(browser, {})
                 print(getNow(), "Refreshing page")
-                ne          xtRefresh = time.time() + interval
+                nextRefresh = time.time() + interval
             openList = getClassStatus(
                 courses, term, timeBlacklist, restrictedBlacklist)
             if len(openList) > 0 and last != openList:
