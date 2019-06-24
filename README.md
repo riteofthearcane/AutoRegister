@@ -11,5 +11,5 @@
 * stops searching when over credit limit or when no classes left to sign up for
 
 ### Dependencies
-* selenium (dowload chrome webdriver at http://chromedriver.chromium.org/downloads)
+* selenium (download Chrome webdriver at http://chromedriver.chromium.org/downloads)
 * configparser
