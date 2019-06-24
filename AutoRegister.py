@@ -1,5 +1,5 @@
 import requests
-import json
+    import json
 import time
 from datetime import datetime
 from selenium import webdriver
@@ -54,14 +54,17 @@ def main():
                 addClass(browser, openList)
                 enrolled = getEnrolledClass(browser)
                 credits = getTotalCredits(browser)
+                deleteList = set()
                 for course in courses:
                     if course in enrolled:
                         print("Enrolled in", course)
-                        courses.remove(course)
+                        deleteList.add(course)
                         writeCoursesToConfig(config, courses, fileName)
                         times = getEnrolledTime(enrolled, term)
                         timeBlacklist = generateTimeBlacklist(
                             courses, times, term)
+                for delete in deleteList:
+                    courses.remove(delete)
                 getMessage(browser, restrictedBlacklist, config)
                 writeBlacklistToConfig(config, restrictedBlacklist, fileName)
             last = openList
@@ -305,8 +308,8 @@ def initializeCourses(config, enrolled):
 def initializeBlacklist(config, courses):
     res = set()
     for entry in config['class']['blacklist'].split(','):
-        split = entry.split(' ')
-        if len(split) == 3 and split[0] + ' ' + split[1] in courses:
+        split = entry.strip().split(' ')
+        if len(split) == 3 and split[0].upper() + ' ' + split[1].upper() in courses:
             res.add(entry)
     return res
 
@@ -315,6 +318,7 @@ def writeCoursesToConfig(config, courses, fileName):
     res = ""
     if len(courses) > 0:
         courseList = list(courses)
+        courseList.sort()
         for i in range(len(courseList) - 1):
             res += courseList[i] + ","
         res += courseList[-1]
@@ -325,6 +329,7 @@ def writeCoursesToConfig(config, courses, fileName):
 def writeBlacklistToConfig(config, blacklist, fileName):
     res = ""
     parsed = list(blacklist)
+    parsed.sort()
     if len(parsed) > 0:
         for i in range(len(parsed) - 1):
             res += parsed[i] + ","
