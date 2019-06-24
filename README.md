@@ -9,6 +9,7 @@
 * checks time conflicts
 * records restricted sections and prevents signing up for them
 * stops searching when over credit limit or when no classes left to sign up for
+* stores settings in config file so user only has to set up once
 
 ### Dependencies
 * selenium (download Chrome webdriver at http://chromedriver.chromium.org/downloads)
