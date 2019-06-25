@@ -1,5 +1,5 @@
 import requests
-    import json
+import json
 import time
 from datetime import datetime
 from selenium import webdriver
@@ -11,68 +11,68 @@ import re
 
 
 def main():
-    print(getNow(), "Initializing AutoRegister")
+    print(getNow(), "Initializing AutoRegister...")
     fileName = getFileName()
     config = initializeConfig(fileName)
     if config:
         browser = webdriver.Chrome(config['setup']['driverPath'])
         login(browser, config['setup']['username'],
               config['setup']['password'])
-        term = getTerm(browser)
-        enrolled = getEnrolledClass(browser)
-        if len(enrolled) > 0:
-            print('Currently enrolled in:')
-            for e in enrolled:
-                print(e)
+        if not checkLogin(browser):
+            term = getTerm(browser)
+            enrolled = getEnrolledClass(browser)
+            times = getEnrolledTime(enrolled, term)
             credits = getTotalCredits(browser)
+            courses = initializeCourses(config, enrolled)
+            writeCoursesToConfig(config, courses, fileName)
+            timeBlacklist = generateTimeBlacklist(courses, times, term)
+            restrictedBlacklist = initializeBlacklist(config, courses)
+            writeBlacklistToConfig(config, restrictedBlacklist, fileName)
+            goal = int(config['class']['goal'])
+            print("Checking for availability for:")
+            for course in courses:
+                print(course)
+            print("Please do not manually drop or sign up classes. \n")
+            last = []
+            interval = 3600 * 3  # 3 hours
+            nextRefresh = time.time() + interval
+            while len(courses) > 0 and credits < goal:
+                if time.time() >= nextRefresh:
+                    addClass(browser, {})
+                    print(getNow(), "Refreshing page.")
+                    if checkLogin(browser):
+                        login(browser, config['setup']['username'],
+                              config['setup']['password'])
+                        print("Logged out. Logging back in.")
+                    nextRefresh = time.time() + interval
+                openList = getClassStatus(
+                    courses, term, timeBlacklist, restrictedBlacklist)
+                if len(openList) > 0 and last != openList:
+                    addClass(browser, openList)
+                    enrolled = getEnrolledClass(browser)
+                    credits = getTotalCredits(browser)
+                    deleteList = set()
+                    for course in courses:
+                        if course in enrolled:
+                            print("Enrolled in", course)
+                            deleteList.add(course)
+                            writeCoursesToConfig(config, courses, fileName)
+                            times = getEnrolledTime(enrolled, term)
+                            timeBlacklist = generateTimeBlacklist(
+                                courses, times, term)
+                    for delete in deleteList:
+                        courses.remove(delete)
+                    getMessage(browser, restrictedBlacklist, config)
+                    writeBlacklistToConfig(
+                        config, restrictedBlacklist, fileName)
+                last = openList
+                time.sleep(5)
+            if len(courses) == 0:
+                print('All classes added.')
+            elif credits >= goal:
+                print('Credit minimum reached.')
         else:
-            print("Currently not enrolled in any classes")
-        times = getEnrolledTime(enrolled, term)
-        credits = getTotalCredits(browser)
-        print("Credits:", credits, '\n')
-        courses = initializeCourses(config, enrolled)
-        writeCoursesToConfig(config, courses, fileName)
-        timeBlacklist = generateTimeBlacklist(courses, times, term)
-        restrictedBlacklist = initializeBlacklist(config, courses)
-        writeBlacklistToConfig(config, restrictedBlacklist, fileName)
-        goal = int(config['class']['goal'])
-        print("Checking for availability for:")
-        for course in courses:
-            print(course)
-        print("Please do not manually drop or sign up classes. \n")
-        last = []
-        interval = 3600 * 6  # 6 hours
-        nextRefresh = time.time() + interval
-        while len(courses) > 0 and credits < goal:
-            if time.time() >= nextRefresh:
-                addClass(browser, {})
-                print(getNow(), "Refreshing page")
-                nextRefresh = time.time() + interval
-            openList = getClassStatus(
-                courses, term, timeBlacklist, restrictedBlacklist)
-            if len(openList) > 0 and last != openList:
-                addClass(browser, openList)
-                enrolled = getEnrolledClass(browser)
-                credits = getTotalCredits(browser)
-                deleteList = set()
-                for course in courses:
-                    if course in enrolled:
-                        print("Enrolled in", course)
-                        deleteList.add(course)
-                        writeCoursesToConfig(config, courses, fileName)
-                        times = getEnrolledTime(enrolled, term)
-                        timeBlacklist = generateTimeBlacklist(
-                            courses, times, term)
-                for delete in deleteList:
-                    courses.remove(delete)
-                getMessage(browser, restrictedBlacklist, config)
-                writeBlacklistToConfig(config, restrictedBlacklist, fileName)
-            last = openList
-            time.sleep(5)
-        if len(courses) == 0:
-            print('All classes added')
-        elif credits >= goal:
-            print('Credit minimum reached')
+            print("Login failed.")
     input("Press Enter to continue...")
 
 
@@ -88,7 +88,7 @@ def initializeConfig(fileName):
     config = configparser.ConfigParser()
     if not os.path.exists(fileName):
         config['setup'] = {
-            'username': 'Enter your UW NetId here',
+            'username': 'Enter your UW NetID here',
             'password': 'Enter your password here',
             'driverPath': 'Enter the path of the Chrome driver or download at http://chromedriver.chromium.org/'
         }
@@ -113,6 +113,10 @@ def login(browser, id, pw):
     username.send_keys(id)
     password.send_keys(pw)
     browser.find_element_by_name("_eventId_proceed").click()
+
+
+def checkLogin(browser):
+    return len(browser.find_elements_by_name("_eventId_proceed")) > 0
 
 
 def getTerm(browser):
