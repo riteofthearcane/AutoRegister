@@ -268,7 +268,7 @@ def getClassStatus(courses, term, timeBlacklist, restrictedBlacklist):
                             fullCourseName = course + ' ' + section['code']
                             if not fullCourseName in timeBlacklist and not fullCourseName in restrictedBlacklist:
                                 if len(section['code']) == 1:
-                                    if section['enrollStatus'] == 'open':
+                                    if section['enrollStatus'] == 'open' and section['addCodeRequired'] == 'false':
                                         status[section['code']] = {
                                             'registrationCode': section['registrationCode']
                                         }
@@ -278,7 +278,7 @@ def getClassStatus(courses, term, timeBlacklist, restrictedBlacklist):
                                         if not sectionType in status[section['code'][0]]:
                                             status[section['code'][0]
                                                    ][sectionType] = {}
-                                        if section['enrollStatus'] == 'open':
+                                        if section['enrollStatus'] == 'open' and section['addCodeRequired'] == 'false':
                                             status[section['code'][0]][sectionType][section['code']] = {
                                                 'registrationCode': section['registrationCode']
                                             }
