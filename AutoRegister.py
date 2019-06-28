@@ -34,7 +34,7 @@ def main():
                 print(course)
             print("Please do not manually drop or sign up classes. \n")
             last = []
-            interval = 3600 * 3  # 3 hours
+            interval = 3600 * 9 # 3 hours
             nextRefresh = time.time() + interval
             while len(courses) > 0 and credits < goal:
                 if time.time() >= nextRefresh:
@@ -110,6 +110,8 @@ def login(browser, id, pw):
     browser.get("https://sdb.admin.uw.edu/students/uwnetid/register.asp")
     username = browser.find_element_by_id("weblogin_netid")
     password = browser.find_element_by_id("weblogin_password")
+    username.clear()
+    password.clear()
     username.send_keys(id)
     password.send_keys(pw)
     browser.find_element_by_name("_eventId_proceed").click()
@@ -166,12 +168,11 @@ def addClass(browser, openList):
     courses = list(openList.keys())
     for i in range(8):
         form = browser.find_element_by_name("sln" + str(max + 1 + i))
+        form.clear()
         if i < len(courses):
             form.send_keys(courses[i])
             print(getNow(), "Attempting to enroll in",
                   openList[courses[i]])
-        else:
-            form.clear()
     browser.find_element_by_xpath(
         '//input[@value=\' Update Schedule \']').click()
 
