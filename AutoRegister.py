@@ -210,6 +210,7 @@ def generateTimeBlacklist(courses, times, term):
 
 
 def overlaps(meetingTime, times):
+    if not meetingTime['days']: return False
     days1 = [a for a in re.split(r'([A-Z][a-z]*)', meetingTime['days']) if a]
     hours1 = meetingTime['time'].split(' - ')
     st1 = hours1[0]  # 1:30 PM
@@ -352,7 +353,7 @@ def getCourseJson(course):
               "error while attempting to load")
     if page and page.status_code == 200:
         return json.loads(page.content)
-
+    
 
 def getCourseLink(course):
     return 'https://myplan.uw.edu/course/api/courses/' + course + '/details'
