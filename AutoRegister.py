@@ -56,12 +56,13 @@ def main():
                         if course in enrolled:
                             print("Enrolled in", course)
                             deleteList.add(course)
-                            writeCoursesToConfig(config, courses, fileName)
-                            times = getEnrolledTime(enrolled, term)
-                            timeBlacklist = generateTimeBlacklist(
-                                courses, times, term)
+                        
                     for delete in deleteList:
                         courses.remove(delete)
+                    writeCoursesToConfig(config, courses, fileName)
+                    times = getEnrolledTime(enrolled, term)
+                    timeBlacklist = generateTimeBlacklist(
+                        courses, times, term)
                     getMessage(browser, restrictedBlacklist, config)
                     writeBlacklistToConfig(
                         config, restrictedBlacklist, fileName)
@@ -270,7 +271,8 @@ def getClassStatus(courses, term, timeBlacklist, restrictedBlacklist):
                             fullCourseName = course + ' ' + section['code']
                             if not fullCourseName in timeBlacklist and not fullCourseName in restrictedBlacklist:
                                 if len(section['code']) == 1:
-                                    if section['enrollStatus'] == 'open' and section['addCodeRequired'] == 'false':
+                                    if section['enrollStatus'] == 'open' and (not section['addCodeRequired'] or section['addCodeRequired'] == 'false'):
+
                                         status[section['code']] = {
                                             'registrationCode': section['registrationCode']
                                         }
@@ -280,7 +282,7 @@ def getClassStatus(courses, term, timeBlacklist, restrictedBlacklist):
                                         if not sectionType in status[section['code'][0]]:
                                             status[section['code'][0]
                                                    ][sectionType] = {}
-                                        if section['enrollStatus'] == 'open' and section['addCodeRequired'] == 'false':
+                                        if section['enrollStatus'] == 'open' and (not section['addCodeRequired'] or section['addCodeRequired'] == 'false'):
                                             status[section['code'][0]][sectionType][section['code']] = {
                                                 'registrationCode': section['registrationCode']
                                             }
