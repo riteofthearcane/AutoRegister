@@ -17,3 +17,7 @@
 ### Dependencies
 * selenium (download Chrome webdriver at http://chromedriver.chromium.org/downloads)
 * configparser
+```
+pip install selenium
+pip install configparser
+```
