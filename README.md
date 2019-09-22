@@ -22,3 +22,4 @@
 pip install selenium
 pip install configparser
 ```
+Alternatively, you can download the pre compiled (PyInstaller) Windows executable.
