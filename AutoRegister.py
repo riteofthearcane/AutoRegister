@@ -21,6 +21,7 @@ def main():
         if not checkLogin(browser):
             term = getTerm(browser)
             enrolled = getEnrolledClass(browser)
+
             times = getEnrolledTime(enrolled, term)
             credits = getTotalCredits(browser)
             courses = initializeCourses(config, enrolled)
@@ -36,7 +37,7 @@ def main():
             last = []
             interval = 3600 * 9 # 3 hours
             nextRefresh = time.time() + interval
-            while len(courses) > 0 and credits < goal:
+            while len(courses) > 0 and credits < goal: 
                 if time.time() >= nextRefresh:
                     addClass(browser, {})
                     print(getNow(), "Refreshing page.")
@@ -56,13 +57,12 @@ def main():
                         if course in enrolled:
                             print("Enrolled in", course)
                             deleteList.add(course)
-                        
+                            writeCoursesToConfig(config, courses, fileName)
+                            times = getEnrolledTime(enrolled, term)
+                            timeBlacklist = generateTimeBlacklist(
+                                courses, times, term)
                     for delete in deleteList:
                         courses.remove(delete)
-                    writeCoursesToConfig(config, courses, fileName)
-                    times = getEnrolledTime(enrolled, term)
-                    timeBlacklist = generateTimeBlacklist(
-                        courses, times, term)
                     getMessage(browser, restrictedBlacklist, config)
                     writeBlacklistToConfig(
                         config, restrictedBlacklist, fileName)
@@ -96,7 +96,7 @@ def initializeConfig(fileName):
         config['class'] = {
             'class': 'Enter the classes you want to sign up, separated by a comma',
             'goal': 'Enter the minimum number of credits you wish to take',
-            'blacklist': ''
+            'blacklist': '' 
         }
         config.write(open(fileName, 'w'))
         print('Config file created at ', fileName)
@@ -161,7 +161,7 @@ def getTotalCredits(browser):
     elem = browser.find_element_by_xpath(
         "/html/body/div[2]/form[1]/p/table[1]/tbody/tr[last()]/td[1]")
     split = elem.text.split()
-    return int(float(split[len(split)-1]))
+    return 0 if not split else int(float(split[len(split)-1]))
 
 
 def addClass(browser, openList):
@@ -211,7 +211,6 @@ def generateTimeBlacklist(courses, times, term):
 
 
 def overlaps(meetingTime, times):
-    if not meetingTime['days']: return False
     days1 = [a for a in re.split(r'([A-Z][a-z]*)', meetingTime['days']) if a]
     hours1 = meetingTime['time'].split(' - ')
     st1 = hours1[0]  # 1:30 PM
@@ -271,8 +270,7 @@ def getClassStatus(courses, term, timeBlacklist, restrictedBlacklist):
                             fullCourseName = course + ' ' + section['code']
                             if not fullCourseName in timeBlacklist and not fullCourseName in restrictedBlacklist:
                                 if len(section['code']) == 1:
-                                    if section['enrollStatus'] == 'open' and (not section['addCodeRequired'] or section['addCodeRequired'] == 'false'):
-
+                                    if section['enrollStatus'] == 'open' and section['addCodeRequired'] == 'false':
                                         status[section['code']] = {
                                             'registrationCode': section['registrationCode']
                                         }
@@ -282,7 +280,7 @@ def getClassStatus(courses, term, timeBlacklist, restrictedBlacklist):
                                         if not sectionType in status[section['code'][0]]:
                                             status[section['code'][0]
                                                    ][sectionType] = {}
-                                        if section['enrollStatus'] == 'open' and (not section['addCodeRequired'] or section['addCodeRequired'] == 'false'):
+                                        if section['enrollStatus'] == 'open' and section['addCodeRequired'] == 'false':
                                             status[section['code'][0]][sectionType][section['code']] = {
                                                 'registrationCode': section['registrationCode']
                                             }
@@ -354,8 +352,8 @@ def getCourseJson(course):
         print(getNow(), getCourseLink(course),
               "error while attempting to load")
     if page and page.status_code == 200:
-        return json.loads(page.content)
-    
+        return page.json()
+
 
 def getCourseLink(course):
     return 'https://myplan.uw.edu/course/api/courses/' + course + '/details'
